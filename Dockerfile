@@ -6,6 +6,8 @@ WORKDIR /app
 
 RUN pip install -r requirements.txt
 
+RUN touch database.sqlite
+
 ENTRYPOINT ["python"]
 
 CMD ["app.py"]
