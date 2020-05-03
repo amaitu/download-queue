@@ -17,7 +17,9 @@ class Job:
         url: str,
         directory: str,
         filename: str,
+        content_type: str,
     ):
+        self.content_type = content_type
         self.uuid = uuid
         self.created_at = created_at
         self.processed = processed
@@ -30,9 +32,9 @@ class Job:
 def get_all_downloads():
     # INSERT
     # INTO
-    # "jobs"("id", "created_at", "processed", "url", "dir", "filename")
+    # "jobs"("id", "created_at", "processed", "url", "dir", "filename", "content_type")
     # VALUES
-    # ('7d2e4aaa-5901-46aa-82ad-8950e839078b', '2020-01-01 00:00:00', '0', 'https://sgbarker.com', 'lund', 'lund.csv');
+    # ('7d2e4aaa-5901-46aa-82ad-8950e839078b', '2020-01-01 00:00:00', '0', 'https://sgbarker.com', 'lund', 'lund.csv', 'TV');
 
     processed = None
 
@@ -66,6 +68,7 @@ def get_all_downloads():
             "url": row[3],
             "dir": row[4],
             "filename": row[5],
+            "content_type": row[6],
         }
 
         results[result_id] = result
@@ -78,7 +81,7 @@ def get_next_job_in_queue():
     c = conn.cursor()
 
     query = c.execute(
-        "SELECT id, created_at, processed, url, dir, filename FROM jobs WHERE processed = ? ORDER BY created_at asc LIMIT 1",
+        "SELECT id, created_at, processed, url, dir, filename, content_type FROM jobs WHERE processed = ? ORDER BY created_at asc LIMIT 1",
         "0",
     )
 
@@ -92,6 +95,7 @@ def get_next_job_in_queue():
             url=row[3],
             directory=row[4],
             filename=row[5],
+            content_type=row[6],
         )
 
         conn.close()
@@ -105,8 +109,10 @@ def process():
     if job is None:
         return "No jobs found."
 
+    directory = job.content_type + "/" + job.directory
+
     download_a_file(
-        url=job.url, name=job.filename, directory=job.directory,
+        url=job.url, name=job.filename, directory=directory,
     )
 
     mark_job_as_complete(job=job)
